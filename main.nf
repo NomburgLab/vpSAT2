@@ -7,12 +7,13 @@ nextflow.enable.dsl=2
 include { mmseqs2 } from './bin/modules/mmseqs2'
 include { colabfold } from './bin/modules/colabfold'
 include { foldseek } from './bin/modules/foldseek'
+include { esmfold } from './bin/modules/esmfold'
 
 //============================================================================//
 // Check params
 //============================================================================//
-if( (params.entry_point != "mmseqs") && (params.entry_point != "colabfold")) {
-  error "params.input_type must be set to 'mmseqs' or 'colabfold'."
+if( (params.entry_point != "mmseqs") && (params.entry_point != "colabfold") && (params.entry_point != "esmfold")) {
+  error "params.input_type must be set to 'mmseqs', 'colabfold', or 'esmfold'."
 }
 
 
@@ -58,6 +59,16 @@ workflow colabfold_workflow_a3m_entry {
 
 }
 
+workflow esmfold_workflow {
+
+  take: input_ch
+  main:
+
+  // Run Esmfold
+  esmfold(input_ch.filter{ it[1].size() > 0 })
+
+}
+
 //============================================================================//
 // Define main workflow
 //============================================================================//
@@ -79,9 +90,10 @@ workflow {
       infile_channel = sampleID_set_from_infile(params.in_files)
       colabfold_workflow_a3m_entry(infile_channel)
     }
-    
 
-      
-
+    else if ( params.entry_point == "esmfold" ) {
+      infile_channel = sampleID_set_from_infile(params.in_files)
+      esmfold_workflow(infile_channel)
+    }
       
 }
