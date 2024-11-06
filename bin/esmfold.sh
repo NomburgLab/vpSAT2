@@ -74,7 +74,8 @@ echo "$0: Started at $(date)"
 
 esm-fold \
 -i $IN_FASTA \
--o ${OUT_FILE}_result
+-o ${OUT_FILE}_result \
+--num-recycles $NUM_RECYCLES
 
 mv ${OUT_FILE}_result/*pdb ${OUT_FILE} && rm -r ${OUT_FILE}_result
 

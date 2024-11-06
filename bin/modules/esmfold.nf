@@ -25,6 +25,6 @@ process esmfold {
   esmfold.sh \
   -i ${in_fasta} \
   -o ${sampleID}.pdb \
-  --num_recycles ${params.ESMFOLD_num_recycles}
+  -n ${params.ESMFOLD_num_recycles}
   """
 }
