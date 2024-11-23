@@ -193,14 +193,14 @@ colabfold_batch \
     --num-recycle $NUM_RECYCLES \
     --use-gpu-relax \
     --num-models $NUM_MODELS \
+    --stop-at-score $STOP_AT_SCORE \
+    --stop-at-score-below $STOP_AT_SCORE_BELOW \
     $USE_TEMPLATES_SETTINGS \
     $CUSTOM_TEMPLATES_SETTING \
     $AMBER_SETTING \
     $INFILE \
     $OUT_DIR 
-
-    # --stop-at-score $STOP_AT_SCORE \
-    # --stop-at-score-below $STOP_AT_SCORE_BELOW \
+    
 
 # If OUTFILE is specified, copy the best model to the outfile
 # Depending on the colabfold version in the system, the ranks are labled rank_N or rank_00N
