@@ -39,10 +39,6 @@ usage() {
         -1 --STOP_AT_SCORE {int} [DEFAULT: 70]
             If a model has at least this pLDDT, it will stop computing structures and 
             use that model as the top.
-        -2 --STOP_AT_SCORE_BELOW {int} [DEFAULT: 40]
-            If a model has a pLDDT below this number, it is probably fruitless to
-            continue computing structures so stop computing and use the top model
-            up to now.
         -c --CUSTOM_TEMPLATES_DIR {dir} [DEFAULT: '']
             If you're running colabfold completely locally, you don't want it to
             try to contact the templates server. Instead, provide a path to a directory
@@ -77,7 +73,7 @@ USER_AMBER=false
 USE_TEMPLATES=false
 
 #Setting input
-while getopts i:d:o:s:n:1:2:m:c:tua option ; do
+while getopts i:d:o:s:n:1:m:c:tua option ; do
         case "${option}"
         in
                 i) INFILE=${OPTARG};;
@@ -85,7 +81,6 @@ while getopts i:d:o:s:n:1:2:m:c:tua option ; do
                 o) OUTFILE=${OPTARG};;
                 s) SCORE_FILE=${OPTARG};;
                 1) STOP_AT_SCORE=${OPTARG};;
-                2) STOP_AT_SCORE_BELOW=${OPTARG};;
                 n) NUM_RECYCLES=${OPTARG};;
                 m) NUM_MODELS=${OPTARG};;
                 c) CUSTOM_TEMPLATES_DIR=${OPTARG};;
@@ -103,7 +98,6 @@ NUM_RECYCLES=${NUM_RECYCLES:-3}
 OUTFILE=${OUTFILE:-""}
 SCORE_FILE=${SCORE_FILE:-""}
 STOP_AT_SCORE=${STOP_AT_SCORE:-70}
-STOP_AT_SCORE_BELOW=${STOP_AT_SCORE_BELOW:-40}
 NUM_MODELS=${NUM_MODELS:-3}
 CUSTOM_TEMPLATES_DIR=${CUSTOM_TEMPLATES_DIR:-""}
 
@@ -175,7 +169,6 @@ OUT_DIR: $OUT_DIR
 OUTFILE: $OUTFILE
 NUM_RECYCLES: $NUM_RECYCLES
 STOP_AT_SCORE: $STOP_AT_SCORE
-STOP_AT_SCORE_BELOW: $STOP_AT_SCORE_BELOW
 NUM_MODELS: $NUM_MODELS
 CUSTOM_TEMPLATES_DIR: $CUSTOM_TEMPLATES_DIR
 USE_TEMPLATES: $USE_TEMPLATES
@@ -194,7 +187,6 @@ colabfold_batch \
     --use-gpu-relax \
     --num-models $NUM_MODELS \
     --stop-at-score $STOP_AT_SCORE \
-    --stop-at-score-below $STOP_AT_SCORE_BELOW \
     $USE_TEMPLATES_SETTINGS \
     $CUSTOM_TEMPLATES_SETTING \
     $AMBER_SETTING \
