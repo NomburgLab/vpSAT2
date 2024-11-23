@@ -48,6 +48,9 @@ usage() {
         -p --WRITE_PICKLES {'yes' or 'no'} [DEFAULT: 'no']
             If specified, .pickle files will be generated for each model. This is
             useful to get contact probabilities.
+        -M --MODEL_TYPE [DEFAULT: 'auto']
+            This specifies the type of model to run. The possible values are as follows:
+            auto alphafold2 alphafold2_ptm alphafold2_multimer_v1 alphafold2_multimer_v2 alphafold2_multimer_v3
         -t --USE_TEMPLATES
             Boolean switch.
             If specified, will query the templates server (or use
@@ -76,7 +79,7 @@ USER_AMBER=false
 USE_TEMPLATES=false
 
 #Setting input
-while getopts i:d:o:s:n:1:m:c:p:tua option ; do
+while getopts i:d:o:s:n:1:m:c:p:M:tua option ; do
         case "${option}"
         in
                 i) INFILE=${OPTARG};;
@@ -88,6 +91,7 @@ while getopts i:d:o:s:n:1:m:c:p:tua option ; do
                 m) NUM_MODELS=${OPTARG};;
                 c) CUSTOM_TEMPLATES_DIR=${OPTARG};;
                 p) WRITE_PICKLES=${OPTARG};;
+                M) MODEL_TYPE=${OPTARG};;
                 t) USE_TEMPLATES=true;;
                 u) USE_CPU=true;;
                 a) USER_AMBER=true;;
@@ -105,6 +109,7 @@ STOP_AT_SCORE=${STOP_AT_SCORE:-70}
 NUM_MODELS=${NUM_MODELS:-3}
 CUSTOM_TEMPLATES_DIR=${CUSTOM_TEMPLATES_DIR:-""}
 WRITE_PICKLES=${WRITE_PICKLES:-"no"}
+MODEL_TYPE=${MODEL_TYPE:-"auto"}
 
 if [[ $CUSTOM_TEMPLATES_DIR == "" ]] ; then
     CUSTOM_TEMPLATES_SETTING=""
@@ -136,6 +141,15 @@ elif [[ "$WRITE_PICKLES" == "no" ]]; then
     WRITE_PICKLES_SETTING=""
 else
     echo "WRITE_PICKLES must be set to yes or no. You specified $WRITE_PICKLES"
+    exit 1
+fi
+
+ALLOWED_MODEL_TYPES=" auto alphafold2 alphafold2_ptm alphafold2_multimer_v1 alphafold2_multimer_v2 alphafold2_multimer_v3 "
+if [[ "$ALLOWED_MODEL_TYPES" == *" $MODEL_TYPE "* ]]; then
+    echo "MODEL_TYPE is valid: $MODEL_TYPE"
+else
+    echo "MODEL_TYPE is invalid: $MODEL_TYPE"
+    echo "Allowed values are: $ALLOWED_VALUES"
     exit 1
 fi
 
@@ -188,6 +202,7 @@ USE_TEMPLATES: $USE_TEMPLATES
 USE_CPU: $USE_CPU
 USER_AMBER: $USER_AMBER
 WRITE_PICKLES: $WRITE_PICKLES
+MODEL_TYPE: $MODEL_TYPE
 
 Parsed internal parameters:
 WRITE_PICKLES_SETTING: $WRITE_PICKLES_SETTING
@@ -206,6 +221,7 @@ colabfold_batch \
     --use-gpu-relax \
     --num-models $NUM_MODELS \
     --stop-at-score $STOP_AT_SCORE \
+    --model-type $MODEL_TYPE \
     $WRITE_PICKLES_SETTING \
     $USE_TEMPLATES_SETTINGS \
     $CUSTOM_TEMPLATES_SETTING \
