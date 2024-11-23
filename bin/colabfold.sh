@@ -45,6 +45,9 @@ usage() {
             that contains .cif structure files (must be .cif, not .cif.gz and not 
             .pdb). These structures will be searched for templates. This can be slow for
             e.g. a local copy of the pdb.
+        -p --WRITE_PICKLES {'yes' or 'no'} [DEFAULT: 'no']
+            If specified, .pickle files will be generated for each model. This is
+            useful to get contact probabilities.
         -t --USE_TEMPLATES
             Boolean switch.
             If specified, will query the templates server (or use
@@ -73,7 +76,7 @@ USER_AMBER=false
 USE_TEMPLATES=false
 
 #Setting input
-while getopts i:d:o:s:n:1:m:c:tua option ; do
+while getopts i:d:o:s:n:1:m:c:p:tua option ; do
         case "${option}"
         in
                 i) INFILE=${OPTARG};;
@@ -84,6 +87,7 @@ while getopts i:d:o:s:n:1:m:c:tua option ; do
                 n) NUM_RECYCLES=${OPTARG};;
                 m) NUM_MODELS=${OPTARG};;
                 c) CUSTOM_TEMPLATES_DIR=${OPTARG};;
+                p) WRITE_PICKLES=${OPTARG};;
                 t) USE_TEMPLATES=true;;
                 u) USE_CPU=true;;
                 a) USER_AMBER=true;;
@@ -100,6 +104,7 @@ SCORE_FILE=${SCORE_FILE:-""}
 STOP_AT_SCORE=${STOP_AT_SCORE:-70}
 NUM_MODELS=${NUM_MODELS:-3}
 CUSTOM_TEMPLATES_DIR=${CUSTOM_TEMPLATES_DIR:-""}
+WRITE_PICKLES=${WRITE_PICKLES:"no"}
 
 if [[ $CUSTOM_TEMPLATES_DIR == "" ]] ; then
     CUSTOM_TEMPLATES_SETTING=""
@@ -125,6 +130,14 @@ else
     AMBER_SETTING=""
 fi
 
+if [[ "$WRITE_PICKLES" == "yes" ]]; then
+    WRITE_PICKLES_SETTING="--save-all"
+elif [[ "$WRITE_PICKLES" == "no" ]]; then
+    WRITE_PICKLES_SETTING=""
+else
+    echo "WRITE_PICKLES must be set to yes or no. You specified $WRITE_PICKLES"
+    exit 1
+fi
 
 #------------------------------------------------------------------------------#
 # Validate inputs and program availablity
@@ -174,6 +187,12 @@ CUSTOM_TEMPLATES_DIR: $CUSTOM_TEMPLATES_DIR
 USE_TEMPLATES: $USE_TEMPLATES
 USE_CPU: $USE_CPU
 USER_AMBER: $USER_AMBER
+WRITE_PICKLES: $WRITE_PICKLES
+
+Parsed internal parameters:
+WRITE_PICKLES_SETTING: $WRITE_PICKLES_SETTING
+USE_TEMPLATES_SETTINGS: $USE_TEMPLATES_SETTINGS
+AMBER_SETTING: $AMBER_SETTING
 "
 
 echo "$0: Started at $(date)"
@@ -187,6 +206,7 @@ colabfold_batch \
     --use-gpu-relax \
     --num-models $NUM_MODELS \
     --stop-at-score $STOP_AT_SCORE \
+    $WRITE_PICKLES_SETTING \
     $USE_TEMPLATES_SETTINGS \
     $CUSTOM_TEMPLATES_SETTING \
     $AMBER_SETTING \
