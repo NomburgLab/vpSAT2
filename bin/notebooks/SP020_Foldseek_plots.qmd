@@ -1,0 +1,126 @@
+---
+title: "SP020"
+format: html
+---
+
+```{r}
+#put this in vpsat
+#load libraries
+library(tidyverse)
+
+```
+
+
+```{r}
+#read in the data
+folder_path <- "/Users/karenzhu/Desktop/Projects/MAIN_structure_project/work/SP001_050/SP020"
+CATH_foldseek_search_tbl <- read_tsv(file.path(folder_path, "CATH/CATH_all_vs_all_TM0.5.m8"))
+CATH_cluster_tbl <- read.table(file.path(folder_path, "CATH/CATH_easy_cluster_cluster.tsv"), sep = "\t", header = FALSE, col.names = c("representative", "member"))
+
+ECOD_foldseek_search_tbl <- read_tsv(file.path(folder_path, "ECOD/ECOD_all_vs_all_TM0.5.m8"))
+ECOD_cluster_tbl <- read.table(file.path(folder_path, "ECOD/ECOD_easy_cluster_cluster.tsv"), sep = "\t", header = FALSE, col.names = c("representative", "member"))
+
+```
+
+```{r}
+#plot tcov vs qcov for CATH all-vs-all easy search results
+CATH_foldseek_search_tbl %>%
+  ggplot() +
+  
+  geom_point(
+    aes(x=qcov, y=tcov),
+    alpha = 0.01
+  ) +
+  
+  geom_hline(
+    yintercept = 0.7,
+    color="red"
+  ) +
+  geom_vline(
+    xintercept = 0.7,
+    color="red"
+  ) +
+  labs(title = "CATH Foldseek Search: tcov vs qcov")
+```
+
+```{r}
+#plot tcov vs qcov for ECOD all-vs-all easy search results
+ECOD_foldseek_search_tbl %>%
+  ggplot() +
+  
+  geom_point(
+    aes(x=qcov, y=tcov),
+    alpha = 0.01
+  ) +
+  
+  geom_hline(
+    yintercept = 0.7,
+    color="red"
+  ) +
+  geom_vline(
+    xintercept = 0.7,
+    color="red"
+  ) +
+  labs(title = "ECOD Foldseek Search: tcov vs qcov")
+```
+
+```{r}
+#generate a bar graph of the cluster sizes for CATH
+
+#group the representative column and then count the number of representatives
+
+CATH_grouped_cluster_size <- CATH_cluster_tbl %>%
+  group_by(representative) %>%
+  summarize(cluster_size = n()) 
+
+CATH_grouped_cluster_size_counts <- CATH_grouped_cluster_size %>%
+  group_by(cluster_size) %>%
+  summarize(n_clusters = n())
+
+#plot the histogram
+ggplot(CATH_grouped_cluster_size_counts) +
+  
+  geom_bar(aes(x = cluster_size, y = n_clusters),
+           stat = "identity"
+           ) +
+  
+  labs(title = "CATH foldseek clusters", x = "Cluster size", y = "Number of clusters") +
+  theme_minimal()
+
+```
+
+```{r}
+#generate a bar graph of the cluster sizes for ECOD
+
+#group the representative column and then count the number of representatives
+
+ECOD_grouped_cluster_size <- ECOD_cluster_tbl %>%
+  group_by(representative) %>%
+  summarize(cluster_size = n()) 
+
+ECOD_grouped_cluster_size_counts <- ECOD_grouped_cluster_size %>%
+  group_by(cluster_size) %>%
+  summarize(n_clusters = n())
+
+#plot the histogram
+ggplot(ECOD_grouped_cluster_size_counts) +
+  
+  geom_bar(aes(x = cluster_size, y = n_clusters),
+           stat = "identity"
+           ) +
+  
+  labs(title = "ECOD foldseek clusters", x = "Cluster size", y = "Number of clusters") +
+  theme_minimal()
+```
+ 
+
+```{r}
+ 
+```
+
+```{r}
+ 
+
+
+```
+

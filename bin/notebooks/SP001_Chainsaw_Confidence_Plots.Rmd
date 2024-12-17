@@ -1,0 +1,66 @@
+
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+```
+
+```{r}
+arch_data <- read.table(
+  "/Users/karenzhu/Desktop/Projects/MAIN_structure_project/work/SP001_050/SP001/arch_combined_chainsaw.txt", 
+  header = TRUE, 
+  sep = "\t") 
+
+phage_data <- read.table(
+  "/Users/karenzhu/Desktop/Projects/MAIN_structure_project/work/SP001_050/SP001/phage_combined_chainsaw.txt", 
+  header = TRUE, 
+  sep = "\t") 
+
+
+```
+
+```{r}
+euk_data <- read.delim(
+  "/Users/karenzhu/Desktop/Projects/MAIN_structure_project/work/SP001_050/SP001/euk_combined_chainsaw.txt", 
+  header = TRUE) 
+```
+
+
+```{r}
+h <- hist(arch_data$confidence, plot = FALSE, breaks = seq(0, 1, by = 0.1))
+
+# Convert counts to percentages (density = percentage of total)
+h$density <- h$counts / sum(h$counts) * 100
+
+# Plot the histogram with percentages on the y-axis
+plot(h, freq = FALSE, main = "Archaeal Viral Domains", 
+     xlim=c(0.4, 1),
+     xlab = "Confidence", ylab = "Relative Frequency", col = "lightblue", border = "black")
+
+
+```
+
+
+```{r}
+h <- hist(phage_data$confidence, plot = FALSE, breaks = seq(0, 1, by = 0.1))
+
+# Convert counts to percentages (density = percentage of total)
+h$density <- h$counts / sum(h$counts) * 100
+
+# Plot the histogram with percentages on the y-axis
+plot(h, freq = FALSE, main = "Phage Viral Domains", xlim=c(0.4, 1), xlab = "Confidence", ylab = "Relative Frequency", col = "lightblue", border = "black")
+     
+```
+```{r}
+h <- hist(euk_data$confidence, plot = FALSE, breaks = seq(0, 1, by = 0.1))
+
+# Convert counts to percentages (density = percentage of total)
+h$density <- h$counts / sum(h$counts) * 100
+
+# Plot the histogram with percentages on the y-axis
+plot(h, freq = FALSE, main = "Eukaryotic Viral Domains", xlim=c(0.4, 1),
+     xlab = "Confidence", ylab = "Relative Frequency", col = "lightblue", border = "black")
+     
+     
+```
+
