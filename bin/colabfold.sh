@@ -39,16 +39,18 @@ usage() {
         -1 --STOP_AT_SCORE {int} [DEFAULT: 70]
             If a model has at least this pLDDT, it will stop computing structures and 
             use that model as the top.
-        -2 --STOP_AT_SCORE_BELOW {int} [DEFAULT: 40]
-            If a model has a pLDDT below this number, it is probably fruitless to
-            continue computing structures so stop computing and use the top model
-            up to now.
         -c --CUSTOM_TEMPLATES_DIR {dir} [DEFAULT: '']
             If you're running colabfold completely locally, you don't want it to
             try to contact the templates server. Instead, provide a path to a directory
             that contains .cif structure files (must be .cif, not .cif.gz and not 
             .pdb). These structures will be searched for templates. This can be slow for
             e.g. a local copy of the pdb.
+        -p --WRITE_PICKLES {'yes' or 'no'} [DEFAULT: 'no']
+            If specified, .pickle files will be generated for each model. This is
+            useful to get contact probabilities.
+        -M --MODEL_TYPE [DEFAULT: 'auto']
+            This specifies the type of model to run. The possible values are as follows:
+            auto alphafold2 alphafold2_ptm alphafold2_multimer_v1 alphafold2_multimer_v2 alphafold2_multimer_v3
         -t --USE_TEMPLATES
             Boolean switch.
             If specified, will query the templates server (or use
@@ -77,7 +79,7 @@ USER_AMBER=false
 USE_TEMPLATES=false
 
 #Setting input
-while getopts i:d:o:s:n:1:2:m:c:tua option ; do
+while getopts i:d:o:s:n:1:m:c:p:M:tua option ; do
         case "${option}"
         in
                 i) INFILE=${OPTARG};;
@@ -85,10 +87,11 @@ while getopts i:d:o:s:n:1:2:m:c:tua option ; do
                 o) OUTFILE=${OPTARG};;
                 s) SCORE_FILE=${OPTARG};;
                 1) STOP_AT_SCORE=${OPTARG};;
-                2) STOP_AT_SCORE_BELOW=${OPTARG};;
                 n) NUM_RECYCLES=${OPTARG};;
                 m) NUM_MODELS=${OPTARG};;
                 c) CUSTOM_TEMPLATES_DIR=${OPTARG};;
+                p) WRITE_PICKLES=${OPTARG};;
+                M) MODEL_TYPE=${OPTARG};;
                 t) USE_TEMPLATES=true;;
                 u) USE_CPU=true;;
                 a) USER_AMBER=true;;
@@ -103,9 +106,10 @@ NUM_RECYCLES=${NUM_RECYCLES:-3}
 OUTFILE=${OUTFILE:-""}
 SCORE_FILE=${SCORE_FILE:-""}
 STOP_AT_SCORE=${STOP_AT_SCORE:-70}
-STOP_AT_SCORE_BELOW=${STOP_AT_SCORE_BELOW:-40}
 NUM_MODELS=${NUM_MODELS:-3}
 CUSTOM_TEMPLATES_DIR=${CUSTOM_TEMPLATES_DIR:-""}
+WRITE_PICKLES=${WRITE_PICKLES:-"no"}
+MODEL_TYPE=${MODEL_TYPE:-"auto"}
 
 if [[ $CUSTOM_TEMPLATES_DIR == "" ]] ; then
     CUSTOM_TEMPLATES_SETTING=""
@@ -131,6 +135,23 @@ else
     AMBER_SETTING=""
 fi
 
+if [[ "$WRITE_PICKLES" == "yes" ]]; then
+    WRITE_PICKLES_SETTING="--save-all"
+elif [[ "$WRITE_PICKLES" == "no" ]]; then
+    WRITE_PICKLES_SETTING=""
+else
+    echo "WRITE_PICKLES must be set to yes or no. You specified $WRITE_PICKLES"
+    exit 1
+fi
+
+ALLOWED_MODEL_TYPES=" auto alphafold2 alphafold2_ptm alphafold2_multimer_v1 alphafold2_multimer_v2 alphafold2_multimer_v3 "
+if [[ "$ALLOWED_MODEL_TYPES" == *" $MODEL_TYPE "* ]]; then
+    echo "MODEL_TYPE is valid: $MODEL_TYPE"
+else
+    echo "MODEL_TYPE is invalid: $MODEL_TYPE"
+    echo "Allowed values are: $ALLOWED_VALUES"
+    exit 1
+fi
 
 #------------------------------------------------------------------------------#
 # Validate inputs and program availablity
@@ -175,12 +196,18 @@ OUT_DIR: $OUT_DIR
 OUTFILE: $OUTFILE
 NUM_RECYCLES: $NUM_RECYCLES
 STOP_AT_SCORE: $STOP_AT_SCORE
-STOP_AT_SCORE_BELOW: $STOP_AT_SCORE_BELOW
 NUM_MODELS: $NUM_MODELS
 CUSTOM_TEMPLATES_DIR: $CUSTOM_TEMPLATES_DIR
 USE_TEMPLATES: $USE_TEMPLATES
 USE_CPU: $USE_CPU
 USER_AMBER: $USER_AMBER
+WRITE_PICKLES: $WRITE_PICKLES
+MODEL_TYPE: $MODEL_TYPE
+
+Parsed internal parameters:
+WRITE_PICKLES_SETTING: $WRITE_PICKLES_SETTING
+USE_TEMPLATES_SETTINGS: $USE_TEMPLATES_SETTINGS
+AMBER_SETTING: $AMBER_SETTING
 "
 
 echo "$0: Started at $(date)"
@@ -193,14 +220,15 @@ colabfold_batch \
     --num-recycle $NUM_RECYCLES \
     --use-gpu-relax \
     --num-models $NUM_MODELS \
+    --stop-at-score $STOP_AT_SCORE \
+    --model-type $MODEL_TYPE \
+    $WRITE_PICKLES_SETTING \
     $USE_TEMPLATES_SETTINGS \
     $CUSTOM_TEMPLATES_SETTING \
     $AMBER_SETTING \
     $INFILE \
     $OUT_DIR 
-
-    # --stop-at-score $STOP_AT_SCORE \
-    # --stop-at-score-below $STOP_AT_SCORE_BELOW \
+    
 
 # If OUTFILE is specified, copy the best model to the outfile
 # Depending on the colabfold version in the system, the ranks are labled rank_N or rank_00N
